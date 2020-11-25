@@ -12,7 +12,6 @@ import javax.persistence.TypedQuery;
 
 @Repository
 public class UserRepository {
-    //Get an instance of EntityManagerFactory from persistence unit with name as 'imageHoster'
     @PersistenceUnit(unitName = "imageHoster")
     private EntityManagerFactory emf;
 

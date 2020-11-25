@@ -13,10 +13,22 @@ import java.util.List;
 public class CommentService {
     private final CommentRepository commentRepository;
 
+    /**
+     * Save comment.
+     *
+     * @param comment - Comment
+     */
     public void saveComment(final Comment comment) {
         commentRepository.saveComment(comment);
     }
 
+    /**
+     * List Comments for an Image.
+     *
+     * @param image - Image
+     *
+     * @return List<Comment>
+     */
     public List<Comment> getCommentsForImage(final Image image) {
         return commentRepository.fetchCommentsForImage(image);
     }

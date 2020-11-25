@@ -13,8 +13,6 @@ import java.util.List;
 
 @Repository
 public class ImageRepository {
-
-    //Get an instance of EntityManagerFactory from persistence unit with name as 'imageHoster'
     @PersistenceUnit(unitName = "imageHoster")
     private EntityManagerFactory emf;
 
@@ -24,7 +22,6 @@ public class ImageRepository {
     //The transaction is committed if it is successful
     //The transaction is rolled back in case of unsuccessful transaction
     public Image uploadImage(final Image newImage) {
-
         final EntityManager em = emf.createEntityManager();
         final EntityTransaction transaction = em.getTransaction();
 

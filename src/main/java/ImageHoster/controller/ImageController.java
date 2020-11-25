@@ -26,18 +26,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 @Controller
 public class ImageController {
-
     private final ImageService imageService;
     private final TagService tagService;
     private final CommentService commentService;
 
     @RequestMapping("images")
     public String getUserImages(final Model model) {
-        log.info("getUserImages");
         final List<Image> images = imageService.getAllImages();
         model.addAttribute("images", images);
         return "images";
@@ -59,7 +57,6 @@ public class ImageController {
     public String showImage(@PathVariable("id") final Integer id,
                             @PathVariable("title") final String title,
                             final Model model) {
-        log.info("showImage : id {}, title {}", id, title);
         final Image image = imageService.getImage(id);
         final List<Comment> comments = commentService.getCommentsForImage(image);
         model.addAttribute("image", image);
@@ -72,7 +69,6 @@ public class ImageController {
     //The method returns 'images/upload.html' file
     @RequestMapping("/images/upload")
     public String newImage() {
-        log.info("newImage");
         return "images/upload";
     }
 
@@ -91,7 +87,6 @@ public class ImageController {
     @RequestMapping(value = "/images/upload", method = RequestMethod.POST)
     public String createImage(@RequestParam("file") final MultipartFile file, @RequestParam("tags") final String tags,
                               final Image newImage, final HttpSession session) throws IOException {
-
         final User user = (User) session.getAttribute("loggeduser");
         newImage.setUser(user);
         final String uploadedImageData = convertUploadedFileToBase64(file);
@@ -116,7 +111,6 @@ public class ImageController {
     public String editImage(@RequestParam("imageId") final Integer imageId,
                             final Model model,
                             final HttpSession session) {
-        log.info("editImages : id {}", imageId);
         final Image image = imageService.getImage(imageId);
         final User loggedInUser = (User) session.getAttribute("loggeduser");
 
@@ -155,8 +149,6 @@ public class ImageController {
                                   final Image updatedImage,
                                   final HttpSession session)
             throws IOException {
-        log.info("editImageSubmit : File - {}, Id - {}, Tags - {}, UpdatedImage - {}", file, imageId, tags,
-                 updatedImage);
         final Image image = imageService.getImage(imageId);
         final String updatedImageData = convertUploadedFileToBase64(file);
         final List<Tag> imageTags = findOrCreateTags(tags);
@@ -185,7 +177,7 @@ public class ImageController {
     public String deleteImageSubmit(@RequestParam(name = "imageId") final Integer imageId,
                                     final Model model,
                                     final HttpSession session) {
-        log.info("DeleteImageSubmit - Id {}", imageId);
+        log.info("Delete Image!!");
         final Image image = imageService.getImage(imageId);
         final User loggedInUser = (User) session.getAttribute("loggeduser");
 
@@ -201,13 +193,12 @@ public class ImageController {
     }
 
     @RequestMapping(value = "/image/{imageId}/{imageTitle}/comments", method = RequestMethod.POST)
-    public String getComments(@PathVariable(name = "imageId") final Integer imageId,
-                              @PathVariable(name = "imageTitle") final String imageTitle,
-                              @RequestParam("comment") final String comment,
-                              final Model model,
-                              final HttpSession session) {
-        log.info("GetComments - Id - {}, Title - {}", imageId, imageTitle);
-
+    public String saveComments(@PathVariable(name = "imageId") final Integer imageId,
+                               @PathVariable(name = "imageTitle") final String imageTitle,
+                               @RequestParam("comment") final String comment,
+                               final Model model,
+                               final HttpSession session) {
+        log.info("Save Comments.!");
         final Image image = imageService.getImage(imageId);
         final User loggedInUser = (User) session.getAttribute("loggeduser");
 
@@ -231,13 +222,6 @@ public class ImageController {
         return Base64.getEncoder().encodeToString(file.getBytes());
     }
 
-    //findOrCreateTags() method has been implemented, which returns the list of tags after converting the ‘tags’
-    // string to a list of all the tags and also stores the tags in the database if they do not exist in the database
-    // . Observe the method and complete the code where required for this method.
-    //Try to get the tag from the database using getTagByName() method. If tag is returned, you need not to store
-    // that tag in the database, and if null is returned, you need to first store that tag in the database and then
-    // the tag is added to a list
-    //After adding all tags to a list, the list is returned
     private List<Tag> findOrCreateTags(final String tagNames) {
         final StringTokenizer st = new StringTokenizer(tagNames, ",");
         final List<Tag> tags = new ArrayList<>();
@@ -255,7 +239,6 @@ public class ImageController {
         return tags;
     }
 
-    //Converts the list of all tags to a single string containing all the tags separated by a comma
     private String convertTagsToString(final List<Tag> tags) {
         final StringBuilder tagString = new StringBuilder();
 

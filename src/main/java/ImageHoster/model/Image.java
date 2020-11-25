@@ -29,20 +29,14 @@ import java.util.List;
 @Table(name = "images")
 public class Image {
 
-    //@Id annotation specifies that the corresponding attribute is a primary key
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    //@Column annotation specifies that the attribute will be mapped to the column in the database.
-    //Here the column name is explicitly mentioned as 'id'
     @Column(name = "id")
     private Integer id;
 
     @Column(name = "title")
     private String title;
 
-    // Text is a Postgres specific column type that allows you to save
-    // text based data that will be longer than 256 characters
-    // this is a base64 encoded version of the image
     @Column(columnDefinition = "TEXT")
     private String imageFile;
 

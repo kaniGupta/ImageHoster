@@ -2,19 +2,15 @@ package ImageHoster.service;
 
 import ImageHoster.model.Image;
 import ImageHoster.repository.ImageRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ImageService {
     private final ImageRepository imageRepository;
-
-    @Autowired
-    public ImageService(final ImageRepository imageRepository) {
-        this.imageRepository = imageRepository;
-    }
 
     //Call the getAllImages() method in the Repository and obtain a List of all the images in the database
     public List<Image> getAllImages() {
