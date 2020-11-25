@@ -1,5 +1,7 @@
 package ImageHoster.model;
 
+import lombok.ToString;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +16,7 @@ import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 //@Entity annotation specifies that the corresponding class is a JPA entity
 @Entity
 //@Table annotation provides more options to customize the mapping.

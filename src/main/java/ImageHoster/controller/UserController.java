@@ -5,6 +5,7 @@ import ImageHoster.model.User;
 import ImageHoster.model.UserProfile;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Slf4j
 @Controller
 public class UserController {
     private final UserService userService;
@@ -31,6 +35,7 @@ public class UserController {
     //Adds User type object to a model and returns 'users/registration.html' file
     @RequestMapping("users/registration")
     public String registration(final Model model) {
+        log.info("registration");
         final User user = new User();
         final UserProfile profile = new UserProfile();
         user.setProfile(profile);
@@ -42,14 +47,27 @@ public class UserController {
     // request is of POST type
     //This method calls the business logic and after the user record is persisted in the database, directs to login page
     @RequestMapping(value = "users/registration", method = RequestMethod.POST)
-    public String registerUser(final User user) {
-        userService.registerUser(user);
-        return "redirect:/users/login";
+    public String registerUser(final User user, final Model model) {
+        log.info("registerUser - {}", user.toString());
+
+        if (isValidPassword(user.getPassword())) {
+            userService.registerUser(user);
+            return "redirect:/users/login";
+        } else {
+            final User newUser = new User();
+            final UserProfile profile = new UserProfile();
+            newUser.setProfile(profile);
+            model.addAttribute("User", newUser);
+            model.addAttribute("passwordTypeError",
+                               "Password must contain atleast 1 alphabet, 1 number & 1 special character");
+            return "users/registration";
+        }
     }
 
     //This controller method is called when the request pattern is of type 'users/login'
     @RequestMapping("users/login")
     public String login() {
+        log.info("login");
         return "users/login";
     }
 
@@ -63,6 +81,7 @@ public class UserController {
     //If user with entered username and password does not exist in the database, redirect to the same login page
     @RequestMapping(value = "users/login", method = RequestMethod.POST)
     public String loginUser(final User user, final HttpSession session) {
+        log.info("loginUser User -> {}", user.toString());
         final User existingUser = userService.login(user);
         if (existingUser != null) {
             session.setAttribute("loggeduser", existingUser);
@@ -81,9 +100,20 @@ public class UserController {
     // application
     @RequestMapping(value = "users/logout", method = RequestMethod.POST)
     public String logout(final Model model, final HttpSession session) {
+        log.info("logout");
         session.invalidate();
         final List<Image> images = imageService.getAllImages();
         model.addAttribute("images", images);
         return "index";
+    }
+
+    private boolean isValidPassword(final String password) {
+        final String regex = "^(?=.*[0-9])((?=.*[a-z])|(?=.*[A-Z]))(?=.*[@#$%^&+=]).{3,}$";
+        final Pattern pattern = Pattern.compile(regex);
+        if (password == null) {
+            return false;
+        }
+        final Matcher matcher = pattern.matcher(password);
+        return matcher.matches();
     }
 }
