@@ -11,7 +11,6 @@ import javax.persistence.PersistenceUnit;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-//The annotation is a special type of @Component annotation which describes that the class defines a data repository
 @Repository
 public class ImageRepository {
 

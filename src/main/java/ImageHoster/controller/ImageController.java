@@ -1,12 +1,14 @@
 package ImageHoster.controller;
 
+import ImageHoster.model.Comment;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
+import ImageHoster.service.CommentService;
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,27 +19,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+@RequiredArgsConstructor
 @Slf4j
 @Controller
 public class ImageController {
 
     private final ImageService imageService;
-
     private final TagService tagService;
+    private final CommentService commentService;
 
-    @Autowired
-    public ImageController(final ImageService imageService, final TagService tagService) {
-        this.imageService = imageService;
-        this.tagService = tagService;
-    }
-
-    //This method displays all the images in the user home page after successful login
     @RequestMapping("images")
     public String getUserImages(final Model model) {
         log.info("getUserImages");
@@ -64,8 +61,10 @@ public class ImageController {
                             final Model model) {
         log.info("showImage : id {}, title {}", id, title);
         final Image image = imageService.getImage(id);
+        final List<Comment> comments = commentService.getCommentsForImage(image);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
+        model.addAttribute("comments", comments);
         return "images/image";
     }
 
@@ -152,7 +151,8 @@ public class ImageController {
     @RequestMapping(value = "/editImage", method = RequestMethod.POST)
     public String editImageSubmit(@RequestParam("file") final MultipartFile file,
                                   @RequestParam("imageId") final Integer imageId,
-                                  @RequestParam("tags") final String tags, final Image updatedImage,
+                                  @RequestParam("tags") final String tags,
+                                  final Image updatedImage,
                                   final HttpSession session)
             throws IOException {
         log.info("editImageSubmit : File - {}, Id - {}, Tags - {}, UpdatedImage - {}", file, imageId, tags,
@@ -200,6 +200,32 @@ public class ImageController {
         return "redirect:/images";
     }
 
+    @RequestMapping(value = "/image/{imageId}/{imageTitle}/comments", method = RequestMethod.POST)
+    public String getComments(@PathVariable(name = "imageId") final Integer imageId,
+                              @PathVariable(name = "imageTitle") final String imageTitle,
+                              @RequestParam("comment") final String comment,
+                              final Model model,
+                              final HttpSession session) {
+        log.info("GetComments - Id - {}, Title - {}", imageId, imageTitle);
+
+        final Image image = imageService.getImage(imageId);
+        final User loggedInUser = (User) session.getAttribute("loggeduser");
+
+        final Comment newComment = new Comment();
+        newComment.setText(comment);
+        newComment.setCreatedDate(LocalDate.now());
+        newComment.setImage(image);
+        newComment.setUser(loggedInUser);
+
+        commentService.saveComment(newComment);
+
+        final List<Comment> comments = commentService.getCommentsForImage(image);
+        model.addAttribute("image", image);
+        model.addAttribute("tags", image.getTags());
+        model.addAttribute("comments", comments);
+        return "images/image";
+    }
+
     //This method converts the image to Base64 format
     private String convertUploadedFileToBase64(final MultipartFile file) throws IOException {
         return Base64.getEncoder().encodeToString(file.getBytes());
@@ -229,9 +255,7 @@ public class ImageController {
         return tags;
     }
 
-    //The method receives the list of all tags
     //Converts the list of all tags to a single string containing all the tags separated by a comma
-    //Returns the string
     private String convertTagsToString(final List<Tag> tags) {
         final StringBuilder tagString = new StringBuilder();
 
