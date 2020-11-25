@@ -114,12 +114,22 @@ public class ImageController {
     // comma and then add this string in a Model type object
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
-    public String editImage(@RequestParam("imageId") final Integer imageId, final Model model) {
+    public String editImage(@RequestParam("imageId") final Integer imageId,
+                            final Model model,
+                            final HttpSession session) {
         log.info("editImages : id {}", imageId);
         final Image image = imageService.getImage(imageId);
+        final User loggedInUser = (User) session.getAttribute("loggeduser");
+
+        model.addAttribute("image", image);
+
+        if (!image.getUser().getId().equals(loggedInUser.getId())) {
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("editError", "Only the owner of the image can edit the image");
+            return "images/image";
+        }
 
         final String tags = convertTagsToString(image.getTags());
-        model.addAttribute("image", image);
         model.addAttribute("tags", tags);
         return "images/edit";
     }
@@ -172,8 +182,20 @@ public class ImageController {
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
     @RequestMapping(value = "/deleteImage", method = RequestMethod.POST)
-    public String deleteImageSubmit(@RequestParam(name = "imageId") final Integer imageId) {
+    public String deleteImageSubmit(@RequestParam(name = "imageId") final Integer imageId,
+                                    final Model model,
+                                    final HttpSession session) {
         log.info("DeleteImageSubmit - Id {}", imageId);
+        final Image image = imageService.getImage(imageId);
+        final User loggedInUser = (User) session.getAttribute("loggeduser");
+
+        if (!image.getUser().getId().equals(loggedInUser.getId())) {
+            model.addAttribute("image", image);
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("deleteError", "Only the owner of the image can delete the image");
+            return "images/image";
+        }
+
         imageService.deleteImage(imageId);
         return "redirect:/images";
     }
